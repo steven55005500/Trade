@@ -2,28 +2,28 @@ require('dotenv').config();
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
-const connectDB = require('./config/db.js'); // Database connection
-const User = require('./models/User.js');    // User Model
+const connectDB = require('./config/db.js');
+const User = require('./models/User.js');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// 1. Database Connect Karein
+// 1. Database Connection
 connectDB();
 
 // 2. Middleware
-app.use(express.json()); // Frontend se aane wale JSON data ko samajhne ke liye
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 3. Telegram Bot Setup
 const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
-// /start command handle karna
+// Start Command Logic
 bot.onText(/\/start ?(.+)?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const { id, first_name, username } = msg.from;
-    const referrerId = match[1] ? match[1].trim() : null; // Link se aane wali ID
+    const referrerId = match[1] ? match[1].trim() : null;
     const webAppUrl = process.env.DOMAIN_URL;
 
     console.log(`Command received: /start from ${id}, Referrer: ${referrerId}`);
@@ -33,7 +33,6 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
 
         if (!user) {
             let parentId = null;
-            // Link se aane wali ID check karein
             if (referrerId && referrerId != id) {
                 const referrer = await User.findOne({ telegramId: referrerId });
                 if (referrer) {
@@ -51,28 +50,25 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
             });
             await user.save();
         }
+
+        bot.sendMessage(chatId, `Welcome to Elite Infinity!`, {
+            reply_markup: {
+                inline_keyboard: [[
+                    { text: "🚀 Open Dashboard", web_app: { url: webAppUrl } }
+                ]]
+            }
+        });
+
     } catch (err) {
         console.error("Referral Error:", err);
     }
-
-    // Isko try-catch ke bahar rakhein taaki message hamesha jaye
-    bot.sendMessage(chatId, `Welcome to Elite Infinity!`, {
-        reply_markup: {
-            inline_keyboard: [[
-                { text: "🚀 Open Dashboard", web_app: { url: webAppUrl } }
-            ]]
-        }
-    }).catch(e => console.error("Send Message Error:", e));
 });
 
-// 4. API: Mini App Login/Auth
-// Jab Mini App khulega, toh ye API user ka data DB me update/check karegi
+// 4. API for Mini App
 app.post('/api/auth', async (req, res) => {
-    const userData = req.body; // Telegram Mini App se aane wala data
-
+    const userData = req.body;
     try {
         let user = await User.findOne({ telegramId: userData.id });
-
         if (!user) {
             user = new User({
                 telegramId: userData.id,
@@ -81,15 +77,12 @@ app.post('/api/auth', async (req, res) => {
             });
             await user.save();
         }
-
         res.status(200).json({ success: true, user });
     } catch (error) {
-        console.error('API Auth Error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
-// Basic route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
