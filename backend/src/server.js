@@ -2,22 +2,21 @@ require('dotenv').config();
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
-const connectDB = require('./config/db.js');
-const User = require('./models/User.js');
+const connectDB = require('./config/db');
+const User = require('./models/User');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// 1. Database Connection
+// 1️⃣ Database Connection
 connectDB();
 
-// 2. Middleware
+// 2️⃣ Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 3. Telegram Bot Setup
-const token = process.env.BOT_TOKEN;
-const bot = new TelegramBot(token, { polling: true });
+// 3️⃣ Telegram Bot Setup (Polling Mode)
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 // Start Command Logic
 bot.onText(/\/start ?(.+)?/, async (msg, match) => {
@@ -26,19 +25,23 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
     const referrerId = match[1] ? match[1].trim() : null;
     const webAppUrl = process.env.DOMAIN_URL;
 
-    console.log(`Command received: /start from ${id}, Referrer: ${referrerId}`);
+    console.log(`Start from ${id}, Referrer: ${referrerId}`);
 
     try {
         let user = await User.findOne({ telegramId: id });
 
         if (!user) {
             let parentId = null;
+
             if (referrerId && referrerId != id) {
                 const referrer = await User.findOne({ telegramId: referrerId });
+
                 if (referrer) {
                     parentId = referrerId;
-                    await User.updateOne({ telegramId: referrerId }, { $inc: { referrals: 1 } });
-                    console.log(`${first_name} joined under ${referrer.firstName}`);
+                    await User.updateOne(
+                        { telegramId: referrerId },
+                        { $inc: { referrals: 1 } }
+                    );
                 }
             }
 
@@ -48,10 +51,11 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
                 username: username || '',
                 referredBy: parentId
             });
+
             await user.save();
         }
 
-        bot.sendMessage(chatId, `Welcome to Elite Infinity!`, {
+        bot.sendMessage(chatId, "Welcome to Elite Infinity 🚀", {
             reply_markup: {
                 inline_keyboard: [[
                     { text: "🚀 Open Dashboard", web_app: { url: webAppUrl } }
@@ -64,29 +68,36 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
     }
 });
 
-// 4. API for Mini App
+// 4️⃣ Mini App Auth API
 app.post('/api/auth', async (req, res) => {
-    const userData = req.body;
     try {
+        const userData = req.body;
+
         let user = await User.findOne({ telegramId: userData.id });
+
         if (!user) {
             user = new User({
                 telegramId: userData.id,
                 firstName: userData.first_name,
                 username: userData.username || ''
             });
+
             await user.save();
         }
+
         res.status(200).json({ success: true, user });
+
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
+// Root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start server
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
