@@ -20,29 +20,41 @@ const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
 // /start command handle karna
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/\/start (.+)?/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const { id, first_name, last_name, username } = msg.from;
-    const webAppUrl = process.env.DOMAIN_URL; 
+    const { id, first_name, username } = msg.from;
+    const referrerId = match[1]; // Ye link se aane wali referral ID hai
+    const webAppUrl = process.env.DOMAIN_URL;
 
     try {
-        // Jab user /start kare, tabhi uska basic data check/save kar lo
         let user = await User.findOne({ telegramId: id });
+
         if (!user) {
+            // Naya user hai, check karo kisne refer kiya
+            let parentId = null;
+            if (referrerId && referrerId != id) {
+                const referrer = await User.findOne({ telegramId: referrerId });
+                if (referrer) {
+                    parentId = referrerId;
+                    // Referrer ka count +1 karo
+                    await User.updateOne({ telegramId: referrerId }, { $inc: { referrals: 1 } });
+                    console.log(`${first_name} joined under ${referrer.firstName}`);
+                }
+            }
+
             user = new User({
                 telegramId: id,
                 firstName: first_name,
-                lastName: last_name || '',
-                username: username || ''
+                username: username || '',
+                referredBy: parentId
             });
             await user.save();
-            console.log(`Naya user register hua: ${first_name}`);
         }
     } catch (err) {
-        console.error("Bot Start Error:", err);
+        console.error("Referral Error:", err);
     }
 
-    bot.sendMessage(chatId, `Welcome ${first_name}! Niche click karke Dashboard open karein:`, {
+    bot.sendMessage(chatId, `Welcome to Elite Infinity!`, {
         reply_markup: {
             inline_keyboard: [[
                 { text: "🚀 Open Dashboard", web_app: { url: webAppUrl } }
