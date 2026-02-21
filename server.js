@@ -20,23 +20,24 @@ const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
 // /start command handle karna
-bot.onText(/\/start (.+)?/, async (msg, match) => {
+bot.onText(/\/start ?(.+)?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const { id, first_name, username } = msg.from;
-    const referrerId = match[1]; // Ye link se aane wali referral ID hai
+    const referrerId = match[1] ? match[1].trim() : null; // Link se aane wali ID
     const webAppUrl = process.env.DOMAIN_URL;
+
+    console.log(`Command received: /start from ${id}, Referrer: ${referrerId}`);
 
     try {
         let user = await User.findOne({ telegramId: id });
 
         if (!user) {
-            // Naya user hai, check karo kisne refer kiya
             let parentId = null;
+            // Link se aane wali ID check karein
             if (referrerId && referrerId != id) {
                 const referrer = await User.findOne({ telegramId: referrerId });
                 if (referrer) {
                     parentId = referrerId;
-                    // Referrer ka count +1 karo
                     await User.updateOne({ telegramId: referrerId }, { $inc: { referrals: 1 } });
                     console.log(`${first_name} joined under ${referrer.firstName}`);
                 }
@@ -54,13 +55,14 @@ bot.onText(/\/start (.+)?/, async (msg, match) => {
         console.error("Referral Error:", err);
     }
 
+    // Isko try-catch ke bahar rakhein taaki message hamesha jaye
     bot.sendMessage(chatId, `Welcome to Elite Infinity!`, {
         reply_markup: {
             inline_keyboard: [[
                 { text: "🚀 Open Dashboard", web_app: { url: webAppUrl } }
             ]]
         }
-    });
+    }).catch(e => console.error("Send Message Error:", e));
 });
 
 // 4. API: Mini App Login/Auth
