@@ -14,11 +14,10 @@ connectDB();
 // 2️⃣ Middleware
 app.use(express.json());
 
-/** * YAHAN CHANGE HAI: 
- * Hum frontend/dist folder ko serve kar rahe hain (React build ke baad).
- * Agar aap simple HTML use kar rahe hain toh 'public' hi rehne dein.
+/** * YAHAN CHANGE KIYA HAI: 
+ * Path ko '../frontend/dist' kar diya hai taaki wo sahi folder uthaye.
  */
-const frontendPath = path.join(__dirname, '../../frontend/dist'); 
+const frontendPath = path.join(__dirname, '../frontend/dist'); 
 app.use(express.static(frontendPath));
 
 // 3️⃣ Telegram Bot Setup
@@ -83,7 +82,7 @@ app.post('/api/auth', async (req, res) => {
 });
 
 /** * 5️⃣ Catch-all Route:
- * Yeh ensure karega ki React ki routing frontend par sahi chale.
+ * React ki routing frontend par chalane ke liye.
  */
 app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
