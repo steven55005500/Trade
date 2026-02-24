@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import Dashboard from './components/Dashboard';
-import Withdraw from './components/Withdraw'; // Nayi file import karein
+import Dashboard from './components/Dashboard'; // Naya file import kiya
 
 function App() {
   const [dbUser, setDbUser] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [debugStatus, setDebugStatus] = useState('Starting app...');
-  const [currentPage, setCurrentPage] = useState('dashboard'); // Page control karne ke liye
 
   useEffect(() => {
     try {
@@ -84,12 +82,8 @@ function App() {
     );
   }
 
-  // Page Switching Logic
-  if (currentPage === 'withdraw') {
-    return <Withdraw user={dbUser} onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  return <Dashboard user={dbUser} onWithdraw={() => setCurrentPage('withdraw')} />;
+  // Yahan humne pura code hata kar sirf Dashboard component call kiya hai
+  return <Dashboard user={dbUser} />;
 }
 
 export default App;
