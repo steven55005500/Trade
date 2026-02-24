@@ -1,132 +1,147 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Dashboard({ user }) {
-  const [activeTab, setActiveTab] = useState("trading");
-  const [exchangeAmount, setExchangeAmount] = useState("");
+  const [activeBottomTab, setActiveBottomTab] = useState("AiEarn");
+  const [activeMidTab, setActiveMidTab] = useState("Ai Trading status");
 
-  // Using your MongoDB user data
-  const totalBalance = user?.balance?.toFixed(2) || "0.00";
-  const userName = user?.firstName || "User";
-  const tgId = user?.telegramId || "000000";
+  // Timer logic for "Settlement time" (Mock countdown for UI)
+  const [timeLeft, setTimeLeft] = useState({ h: 15, m: 32, s: 11 });
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        let { h, m, s } = prev;
+        if (s > 0) s--;
+        else { s = 59; if (m > 0) m--; else { m = 59; h--; } }
+        return { h, m, s };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Database Values
+  const earned = user?.totalEarned?.toFixed(4) || "0.0000";
+  const tp = user?.tradePower || "0.0";
+  const daily = user?.dailyEarn?.toFixed(3) || "0.000";
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', paddingBottom: '80px', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ backgroundColor: '#f4f5fa', minHeight: '100vh', paddingBottom: '80px', fontFamily: 'Arial, sans-serif', color: '#333' }}>
       
-      {/* --- TOP BAR (Mocked for your UI) --- */}
-      <div style={{ backgroundColor: '#fff', padding: '15px 20px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>Hello, {userName}</h2>
-          <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>ID: {tgId}</p>
+      {/* 1. TOP HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '12px 15px', borderBottom: '1px solid #eee' }}>
+        <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#64748b' }}>
+          You Earned : <span style={{ color: '#10b981' }}>₮ {earned}</span>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Total Earned</p>
-          <h3 style={{ margin: 0, fontSize: '16px', color: '#10b981' }}>${totalBalance}</h3>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button style={{ backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            Withdraw <span style={{ fontSize: '16px' }}>→</span>
+          </button>
         </div>
       </div>
 
-      <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* 2. PROMO BANNER */}
+      <div style={{ backgroundColor: '#2f3e2e', color: '#fff', padding: '10px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+          <span style={{ color: '#f472b6' }}>WEEKEND EARN FAST</span> 🎉<br/>
+          Earn <span style={{ color: '#4ade80' }}>↑30%</span> in 48h
+        </div>
+        <button style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '15px', fontSize: '12px', fontWeight: 'bold' }}>LET'S GO</button>
+      </div>
+
+      <div style={{ padding: '15px' }}>
         
-        {/* --- MAIN DASHBOARD CARD --- */}
-        <div style={{ background: 'linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)', borderRadius: '16px', padding: '20px', color: 'white', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.3)' }}>
-          <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>Wallet Balance</p>
-          <h1 style={{ margin: '10px 0', fontSize: '36px', fontWeight: 'bold' }}>${totalBalance}</h1>
+        {/* 3. MAIN TRADE POWER CARD */}
+        <div style={{ backgroundColor: '#fff', borderRadius: '15px', padding: '20px 15px', textAlign: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+          <div style={{ color: '#475569', fontWeight: 'bold', fontSize: '16px' }}>
+            TP (Trade Power) 🔄
+          </div>
           
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', margin: '15px 0' }}>
+            {/* Cube SVG Icon */}
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#10b981"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <h1 style={{ fontSize: '38px', margin: 0, color: '#0f172a' }}>{tp}</h1>
+          </div>
+
+          <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '15px' }}>
+            Daily Earn : <span style={{ fontWeight: 'bold', color: '#0f172a' }}>${daily}</span> <span style={{ color: '#84cc16', fontWeight: 'bold' }}>(+5.5%)</span> 📄 History
+          </div>
+
+          {/* Settlement Timer */}
+          <div style={{ display: 'inline-block', backgroundColor: '#ede9fe', color: '#6d28d9', padding: '6px 15px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold' }}>
+            🕒 Settlement time: {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
+          </div>
+
+          {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-            <button style={{ flex: 1, padding: '12px', backgroundColor: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>
-              Deposit
+            <button style={{ flex: 1, backgroundColor: '#84cc16', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+               Buy TP
             </button>
-            <button style={{ flex: 1, padding: '12px', backgroundColor: '#fff', border: 'none', borderRadius: '8px', color: '#6d28d9', fontWeight: 'bold', cursor: 'pointer' }}>
-              Withdraw
+            <button style={{ flex: 1, backgroundColor: '#fce7f3', color: '#db2777', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+               Refer&Earn
             </button>
           </div>
         </div>
 
-        {/* --- TAB SWITCHER --- */}
-        <div style={{ backgroundColor: '#ede9fe', padding: '5px', borderRadius: '12px', display: 'flex' }}>
+        {/* 4. ROI TABLE SECTION */}
+        <div style={{ backgroundColor: '#fff', borderRadius: '15px', marginTop: '15px', padding: '15px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+          <div style={{ position: 'absolute', top: 10, right: -25, backgroundColor: '#f97316', color: '#fff', padding: '2px 30px', transform: 'rotate(45deg)', fontSize: '10px', fontWeight: 'bold' }}>HOT</div>
+          
+          <h3 style={{ color: '#6d28d9', textAlign: 'center', margin: '0 0 15px 0', fontSize: '15px' }}>Return on Investment in AiEarn</h3>
+          
+          <table style={{ width: '100%', fontSize: '13px', color: '#475569', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <th style={{ textAlign: 'left', paddingBottom: '8px', fontWeight: 'normal' }}>TP purchased</th>
+                <th style={{ textAlign: 'right', paddingBottom: '8px', fontWeight: 'normal' }}>Daily Return</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '10px 0', color: '#94a3b8' }}>≥$0</td>
+                <td style={{ textAlign: 'right', color: '#84cc16', fontWeight: 'bold' }}>5.5%</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '10px 0', color: '#94a3b8' }}>≥$20</td>
+                <td style={{ textAlign: 'right', color: '#84cc16', fontWeight: 'bold' }}>6%</td>
+              </tr>
+              <tr>
+                <td style={{ padding: '10px 0', color: '#94a3b8' }}>≥$300 🔥🔥🔥</td>
+                <td style={{ textAlign: 'right', color: '#84cc16', fontWeight: 'bold' }}>6.5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 5. SUB-TABS (Trading Status / My Trade Power) */}
+        <div style={{ display: 'flex', marginTop: '15px', backgroundColor: '#fff', borderRadius: '10px', overflow: 'hidden' }}>
           <button 
-            onClick={() => setActiveTab("trading")}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s',
-                     backgroundColor: activeTab === "trading" ? '#fff' : 'transparent', 
-                     color: activeTab === "trading" ? '#5b21b6' : '#64748b',
-                     boxShadow: activeTab === "trading" ? '0 2px 4px rgba(0,0,0,0.1)' : 'none' }}
-          >
-            Ai Trading Status
+            onClick={() => setActiveMidTab("Ai Trading status")}
+            style={{ flex: 1, padding: '12px', border: 'none', backgroundColor: activeMidTab === "Ai Trading status" ? '#fff' : '#f8fafc', color: activeMidTab === "Ai Trading status" ? '#6d28d9' : '#64748b', fontWeight: 'bold', borderBottom: activeMidTab === "Ai Trading status" ? '2px solid #6d28d9' : 'none', cursor: 'pointer' }}>
+            Ai Trading status
           </button>
           <button 
-            onClick={() => setActiveTab("power")}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s',
-                     backgroundColor: activeTab === "power" ? '#fff' : 'transparent', 
-                     color: activeTab === "power" ? '#5b21b6' : '#64748b',
-                     boxShadow: activeTab === "power" ? '0 2px 4px rgba(0,0,0,0.1)' : 'none' }}
-          >
+            onClick={() => setActiveMidTab("My Trade Power")}
+            style={{ flex: 1, padding: '12px', border: 'none', backgroundColor: activeMidTab === "My Trade Power" ? '#fff' : '#f8fafc', color: activeMidTab === "My Trade Power" ? '#6d28d9' : '#64748b', fontWeight: 'bold', borderBottom: activeMidTab === "My Trade Power" ? '2px solid #6d28d9' : 'none', cursor: 'pointer' }}>
             My Trade Power
           </button>
         </div>
-
-        {/* --- CONTENT AREA --- */}
-        {activeTab === "trading" ? <TradingStatusPanel /> : <MyTradePowerPanel balance={totalBalance} />}
       </div>
-    </div>
-  );
-}
 
-// ==========================================
-// TRADING STATUS PANEL (Using your provided pairs)
-// ==========================================
-function TradingStatusPanel() {
-  const positions = [
-    { pair: "BTC/USDT", side: "Short", lev: "20X", entry: 97500, time: "11-04 02:07", pnl: "+14.50%" },
-    { pair: "ETH/USDT", side: "Short", lev: "15X", entry: 3380, time: "11-04 02:07", pnl: "+8.20%" },
-    { pair: "BNB/USDT", side: "Short", lev: "10X", entry: 585, time: "11-04 02:07", pnl: "-2.10%" },
-    { pair: "SOL/USDT", side: "Long", lev: "12X", entry: 168.3, time: "11-04 02:07", pnl: "+22.40%" },
-    { pair: "XRP/USDT", side: "Short", lev: "10X", entry: 0.557, time: "11-04 02:07", pnl: "+1.15%" }
-  ]; // Maine yahan list choti ki hai testing ke liye, aap apni puri list yahan paste kar sakte hain.
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      {positions.map((t, i) => (
-        <div key={i} style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '16px' }}>{t.pair}</span>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>{t.time}</span>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', 
-                          backgroundColor: t.side === 'Long' ? '#dcfce7' : '#fee2e2', 
-                          color: t.side === 'Long' ? '#166534' : '#991b1b' }}>{t.side}</span>
-            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', backgroundColor: '#f1f5f9', color: '#475569' }}>{t.lev}</span>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', fontSize: '14px' }}>
-            <div>
-              <div style={{ color: '#94a3b8', fontSize: '12px' }}>Entry Price</div>
-              <div style={{ fontWeight: 'bold', color: '#334155' }}>{t.entry}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ color: '#94a3b8', fontSize: '12px' }}>Est. PNL</div>
-              <div style={{ fontWeight: 'bold', color: t.pnl.startsWith('+') ? '#10b981' : '#ef4444' }}>{t.pnl}</div>
-            </div>
-          </div>
+      {/* 6. BOTTOM NAVIGATION (FOOTER) */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', display: 'flex', justifyContent: 'space-around', padding: '10px 0', borderRadius: '20px 20px 0 0', boxShadow: '0 -2px 10px rgba(0,0,0,0.05)' }}>
+        <div onClick={() => setActiveBottomTab("AiEarn")} style={{ textAlign: 'center', cursor: 'pointer', color: activeBottomTab === "AiEarn" ? '#ef4444' : '#64748b' }}>
+          <div style={{ fontSize: '20px', marginBottom: '2px' }}>🧊</div>
+          <div style={{ fontSize: '12px', fontWeight: 'bold' }}>AiEarn</div>
         </div>
-      ))}
-    </div>
-  );
-}
-
-// ==========================================
-// TRADE POWER PANEL (Mock History)
-// ==========================================
-function MyTradePowerPanel({ balance }) {
-  return (
-    <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', textAlign: 'center' }}>
-      <h3 style={{ color: '#475569', margin: '0 0 10px 0' }}>Trade Power Active</h3>
-      <p style={{ color: '#94a3b8', fontSize: '14px' }}>Your current active trade power generates daily ROI based on your wallet balance.</p>
-      
-      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-        <h2 style={{ margin: 0, color: '#6d28d9' }}>${balance}</h2>
-        <span style={{ fontSize: '12px', color: '#64748b' }}>Generating Profits</span>
+        <div onClick={() => setActiveBottomTab("Friends")} style={{ textAlign: 'center', cursor: 'pointer', color: activeBottomTab === "Friends" ? '#3b82f6' : '#64748b' }}>
+          <div style={{ fontSize: '20px', marginBottom: '2px' }}>👥</div>
+          <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Friends</div>
+        </div>
+        <div onClick={() => setActiveBottomTab("Introduction")} style={{ textAlign: 'center', cursor: 'pointer', color: activeBottomTab === "Introduction" ? '#10b981' : '#64748b' }}>
+          <div style={{ fontSize: '20px', marginBottom: '2px' }}>ℹ️</div>
+          <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Introduction</div>
+        </div>
       </div>
+
     </div>
   );
 }
