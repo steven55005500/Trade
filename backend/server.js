@@ -11,11 +11,12 @@ app.use(express.json());
 // MongoDB Connection
 mongoose.connect('mongodb://127.0.0.1:27017/tradeDB');
 
-// User Schema
+// User Schema (Updated with Balance)
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, unique: true },
   username: String,
   firstName: String,
+  balance: { type: Number, default: 0 }, // New field added here
   joinedAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model('User', userSchema);
@@ -26,9 +27,11 @@ app.post('/api/login', async (req, res) => {
   try {
     let user = await User.findOne({ telegramId });
     if (!user) {
-      user = new User({ telegramId, username, firstName });
+      // Create new user with 0 balance if they don't exist
+      user = new User({ telegramId, username, firstName, balance: 0 });
       await user.save();
     }
+    // Send the user data (including balance) back to the frontend
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
