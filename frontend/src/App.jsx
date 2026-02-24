@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Dashboard from './Dashboard';
-
+import Dashboard from './components/Dashboard'
 /**
  * App:
  * - Detects Telegram WebApp (if present) and calls backend login.
