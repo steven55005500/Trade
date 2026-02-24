@@ -79,12 +79,9 @@ app.post('/api/auth', async (req, res) => {
 });
 
 /** * 5️⃣ Catch-all Route:
- * React ki routing frontend par chalane ke liye.
+ * Bina kisi '*' ke, yeh Express 5 me 100% safe hai.
  */
-// YAHAN CHANGE KIYA HAI: '*' ki jagah '/(.*)' kar diya hai
-// Express 5 ke liye safe catch-all route
-app.get('*', (req, res, next) => {
-    // Agar API route nahi hai, toh React frontend serve karo
+app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
         return res.sendFile(path.join(frontendPath, 'index.html'));
     }
