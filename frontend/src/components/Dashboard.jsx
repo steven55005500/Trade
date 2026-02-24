@@ -32,12 +32,9 @@ export default function Dashboard({ user }) {
           You Earned : <span style={{ color: '#10b981' }}>₮ {earned}</span>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-         <button 
-      onClick={onWithdraw} // Ye line add karein
-      style={{ backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-    >
-      Withdraw <span style={{ fontSize: '16px' }}>→</span>
-    </button>
+          <button style={{ backgroundColor: '#f59e0b', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            Withdraw <span style={{ fontSize: '16px' }}>→</span>
+          </button>
         </div>
       </div>
 
