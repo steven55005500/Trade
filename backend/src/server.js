@@ -13,45 +13,41 @@ connectDB();
 
 // 2️⃣ Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// 3️⃣ Telegram Bot Setup (Polling Mode)
+/** * YAHAN CHANGE HAI: 
+ * Hum frontend/dist folder ko serve kar rahe hain (React build ke baad).
+ * Agar aap simple HTML use kar rahe hain toh 'public' hi rehne dein.
+ */
+const frontendPath = path.join(__dirname, '../../frontend/dist'); 
+app.use(express.static(frontendPath));
+
+// 3️⃣ Telegram Bot Setup
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-// Start Command Logic
 bot.onText(/\/start ?(.+)?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const { id, first_name, username } = msg.from;
     const referrerId = match[1] ? match[1].trim() : null;
     const webAppUrl = process.env.DOMAIN_URL;
 
-    console.log(`Start from ${id}, Referrer: ${referrerId}`);
-
     try {
         let user = await User.findOne({ telegramId: id });
 
         if (!user) {
             let parentId = null;
-
             if (referrerId && referrerId != id) {
                 const referrer = await User.findOne({ telegramId: referrerId });
-
                 if (referrer) {
                     parentId = referrerId;
-                    await User.updateOne(
-                        { telegramId: referrerId },
-                        { $inc: { referrals: 1 } }
-                    );
+                    await User.updateOne({ telegramId: referrerId }, { $inc: { referrals: 1 } });
                 }
             }
-
             user = new User({
                 telegramId: id,
                 firstName: first_name,
                 username: username || '',
                 referredBy: parentId
             });
-
             await user.save();
         }
 
@@ -62,7 +58,6 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
                 ]]
             }
         });
-
     } catch (err) {
         console.error("Referral Error:", err);
     }
@@ -72,32 +67,28 @@ bot.onText(/\/start ?(.+)?/, async (msg, match) => {
 app.post('/api/auth', async (req, res) => {
     try {
         const userData = req.body;
-
         let user = await User.findOne({ telegramId: userData.id });
-
         if (!user) {
             user = new User({
                 telegramId: userData.id,
                 firstName: userData.first_name,
                 username: userData.username || ''
             });
-
             await user.save();
         }
-
         res.status(200).json({ success: true, user });
-
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
-// Root route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+/** * 5️⃣ Catch-all Route:
+ * Yeh ensure karega ki React ki routing frontend par sahi chale.
+ */
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// Start server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
