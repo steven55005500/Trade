@@ -82,8 +82,13 @@ app.post('/api/auth', async (req, res) => {
  * React ki routing frontend par chalane ke liye.
  */
 // YAHAN CHANGE KIYA HAI: '*' ki jagah '/(.*)' kar diya hai
-app.get('/(.*)', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+// Express 5 ke liye safe catch-all route
+app.get('*', (req, res, next) => {
+    // Agar API route nahi hai, toh React frontend serve karo
+    if (!req.path.startsWith('/api/')) {
+        return res.sendFile(path.join(frontendPath, 'index.html'));
+    }
+    next();
 });
 
 app.listen(port, () => {
