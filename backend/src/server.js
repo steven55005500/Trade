@@ -14,9 +14,6 @@ connectDB();
 // 2️⃣ Middleware
 app.use(express.json());
 
-/** * YAHAN CHANGE KIYA HAI: 
- * Path ko '../frontend/dist' kar diya hai taaki wo sahi folder uthaye.
- */
 const frontendPath = path.join(__dirname, '../frontend/dist'); 
 app.use(express.static(frontendPath));
 
@@ -84,7 +81,8 @@ app.post('/api/auth', async (req, res) => {
 /** * 5️⃣ Catch-all Route:
  * React ki routing frontend par chalane ke liye.
  */
-app.get('*', (req, res) => {
+// YAHAN CHANGE KIYA HAI: '*' ki jagah '/(.*)' kar diya hai
+app.get('/(.*)', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
