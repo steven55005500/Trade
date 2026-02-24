@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f4f5fa; /* Aapke naye dashboard ka theme color */
+  overflow-x: hidden; /* Side ka koi extra space ya scrollbar hatane ke liye */
+  font-family: Arial, sans-serif;
+}
