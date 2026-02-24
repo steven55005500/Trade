@@ -8,8 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect('mongodb://127.0.0.1:27017/tradeDB');
+// MongoDB Atlas Connection (Using .env or direct fallback)
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:Magic@cluster0.uakdovp.mongodb.net/Trade?retryWrites=true&w=majority";
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ MongoDB Atlas Connected Successfully'))
+  .catch((err) => console.error('❌ MongoDB Atlas Connection Error:', err));
 
 // User Schema (Updated with Balance)
 const userSchema = new mongoose.Schema({
@@ -48,4 +52,4 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-app.listen(process.env.PORT || 5000, () => console.log("Server running..."));
+app.listen(process.env.PORT || 5000, () => console.log("Server running on port 5000..."));
