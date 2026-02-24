@@ -14,7 +14,10 @@ connectDB();
 // 2️⃣ Middleware
 app.use(express.json());
 
-const frontendPath = path.join(__dirname, '../frontend/dist'); 
+/** * YAHAN FIX HAI: 
+ * '../../' use kiya hai kyunki hum 'backend/src' ke andar hain.
+ */
+const frontendPath = path.join(__dirname, '../../frontend/dist'); 
 app.use(express.static(frontendPath));
 
 // 3️⃣ Telegram Bot Setup
@@ -79,7 +82,7 @@ app.post('/api/auth', async (req, res) => {
 });
 
 /** * 5️⃣ Catch-all Route:
- * Bina kisi '*' ke, yeh Express 5 me 100% safe hai.
+ * Express 5 ke liye safe version
  */
 app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
